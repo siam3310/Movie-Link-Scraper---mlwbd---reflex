@@ -88,24 +88,38 @@ class MovieState(rx.State):
         if key == "Enter":
             return MovieState.handle_search
 
+    @rx.var
+    def displayed_movies(self) -> list[Movie]:
+        """Return only the expanded movie if one exists, otherwise all movies."""
+        for m in self.movies:
+            if m["expanded"]:
+                return [m]
+        return self.movies
+
     @rx.event
     def toggle_movie_expand(self, movie_link: str):
         """Toggle expanded state for a movie and fetch links if needed."""
-        target_index = -1
-        for i, m in enumerate(self.movies):
+        target_movie = None
+        for m in self.movies:
             if m["link"] == movie_link:
-                target_index = i
+                target_movie = m
                 break
-        if target_index == -1:
+        if not target_movie:
             return
-        is_expanding = not self.movies[target_index]["expanded"]
-        new_movie = self.movies[target_index].copy()
-        new_movie["expanded"] = is_expanding
-        self.movies[target_index] = new_movie
+        should_expand = not target_movie["expanded"]
+        new_movies = []
+        for m in self.movies:
+            m_copy = m.copy()
+            if m["link"] == movie_link:
+                m_copy["expanded"] = should_expand
+            elif should_expand:
+                m_copy["expanded"] = False
+            new_movies.append(m_copy)
+        self.movies = new_movies
         if (
-            is_expanding
-            and (not new_movie["links"])
-            and (not new_movie["loading_links"])
+            should_expand
+            and (not target_movie["links"])
+            and (not target_movie["loading_links"])
         ):
             return MovieState.fetch_links_for_movie(movie_link)
 
@@ -233,6 +247,11 @@ class MovieState(rx.State):
     def handle_manual_fetch(self):
         if not self.manual_url:
             return rx.toast.warning("Please enter a valid URL")
+        updated_movies = []
+        for m in self.movies:
+            m_copy = m.copy()
+            m_copy["expanded"] = False
+            updated_movies.append(m_copy)
         manual_movie: Movie = {
             "title": "Manual Fetch Result",
             "image": "/placeholder.svg",
@@ -241,5 +260,6 @@ class MovieState(rx.State):
             "loading_links": True,
             "links": [],
         }
-        self.movies.insert(0, manual_movie)
+        updated_movies.insert(0, manual_movie)
+        self.movies = updated_movies
         return MovieState.fetch_links_for_movie(self.manual_url)

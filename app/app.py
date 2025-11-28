@@ -45,7 +45,7 @@ def index() -> rx.Component:
                         class_name="flex flex-col items-center justify-center py-32",
                     ),
                     rx.cond(
-                        MovieState.movies.length() > 0,
+                        MovieState.displayed_movies.length() > 0,
                         rx.el.div(
                             rx.el.h2(
                                 rx.cond(
@@ -56,8 +56,12 @@ def index() -> rx.Component:
                                 class_name="text-2xl font-normal text-gray-800 mb-6 border-l-4 border-red-600 pl-4",
                             ),
                             rx.el.div(
-                                rx.foreach(MovieState.movies, movie_card),
-                                class_name="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start",
+                                rx.foreach(MovieState.displayed_movies, movie_card),
+                                class_name=rx.cond(
+                                    MovieState.displayed_movies.length() == 1,
+                                    "max-w-4xl mx-auto",
+                                    "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start",
+                                ),
                             ),
                             class_name="w-full",
                         ),

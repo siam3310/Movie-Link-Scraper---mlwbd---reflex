@@ -288,10 +288,11 @@ def main():
 Options:""")
         print("1. Search for a movie")
         print("2. Get latest movies")
+        print("3. Paste direct movie URL")
         print("q. Quit")
         choice = (
             input("""
-Enter choice (1/2/q): """)
+Enter choice (1/2/3/q): """)
             .strip()
             .lower()
         )
@@ -305,6 +306,12 @@ Enter choice (1/2/q): """)
             movies = search_movie(query)
         elif choice == "2":
             movies = get_latest_movies()
+        elif choice == "3":
+            url = input("Enter movie/episode URL: ").strip()
+            if url:
+                movies = [{"title": "Direct Link Import", "link": url, "image": ""}]
+            else:
+                continue
         else:
             continue
         if not movies:
